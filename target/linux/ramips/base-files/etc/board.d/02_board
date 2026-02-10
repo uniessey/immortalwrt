@@ -1,0 +1,12 @@
+#!/bin/sh
+
+board=$(board_name)
+
+case "$board" in
+skspruce,wia3300-10)
+    ucidef_set_hostname 'WIA3300-10'
+    ucidef_set_model 'Skspruce WIA3300-10'
+    ;;
+esac
+
+exit 0

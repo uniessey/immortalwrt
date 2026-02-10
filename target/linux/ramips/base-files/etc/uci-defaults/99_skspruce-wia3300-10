@@ -1,0 +1,12 @@
+#!/bin/sh
+
+board=$(board_name)
+
+[ "$board" = "skspruce,wia3300-10" ] || exit 0
+
+# 启用无线（假设第一个radio是2.4G，第二个是5G）
+uci set wireless.radio0.disabled='0'
+uci set wireless.radio1.disabled='0'
+uci commit wireless
+
+exit 0

@@ -91,3 +91,60 @@ ImmortalWrt is licensed under [GPL-2.0-only](https://spdx.org/licenses/GPL-2.0-o
     <td><a href="https://sourceforge.net/"><img src="https://sourceforge.net/sflogo.php?type=17&group_id=3663829" alt="SourceForge" width=200></a></td>
   </tr>
 </table>
+
+
+# ImmortalWrt 24.10 分支维护备忘录
+
+## 基本信息
+- **分支名称**: openwrt-24.10
+- **上游仓库**: https://github.com/immortalwrt/immortalwrt
+- **个人镜像**: git@github.com:uniessey/immortalwrt.git
+- **适配设备**: WIA3300-10
+
+## 常用 Git 操作
+
+### 1. 查看分支状态
+```bash
+git branch -a # 查看所有本地和远程分支
+git remote -v # 查看远程仓库地址
+git log --oneline -10 # 查看精简提交历史
+
+####2. 与上游仓库同步更新（关键）
+# 获取上游所有最新改动
+git fetch upstream
+
+# 合并上游 openwrt-24.10 分支到当前分支
+git merge upstream/openwrt-24.10
+
+# 如果合并后出现冲突，手动解决冲突文件，然后：
+git add <已解决冲突的文件>
+git commit -m “merge: resolve conflicts”
+
+###3. 推送更新到个人仓库
+# 常规推送
+git push
+
+# 如果本地分支版本落后于远程，可能需要拉取变基后再推送
+git pull --rebase origin openwrt-24.10
+git push
+
+
+######4. 减少重复输入 SSH 密码
+# 启动 ssh-agent 并添加密钥（当前会话有效）
+eval “$(ssh-agent -s)”
+ssh-add ~/.ssh/id_ed25519
+
+####其他提醒
+重大修改前，创建新分支进行操作：git checkout -b feat/新功能名
+
+定期执行 git fetch --all 了解所有远程的最新状态。
+
+本分支主要用于 WIA3300-10 设备适配，合并其他功能时请注意测试。
+
+####4、提交更改到本地仓库：
+git add README.md
+git commit -m “docs: add maintenance notes for openwrt-24.10 branch”
+
+###5、推送到你的 GitHub 仓库（由于之前设置了跟踪，直接 push 即可）：
+
+git push

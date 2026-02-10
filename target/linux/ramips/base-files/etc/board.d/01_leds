@@ -1,0 +1,14 @@
+#!/bin/sh
+. /lib/functions.sh
+. /lib/functions/leds.sh
+
+board=$(board_name)
+
+case "$board" in
+skspruce,wia3300-10)
+    # 此处可放置未来对LED的微调命令
+    # 例如，如果默认触发器不生效，可以在这里用set_led_default等函数强制设置
+    ;;
+esac
+
+exit 0

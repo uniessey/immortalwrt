@@ -1,0 +1,16 @@
+#!/bin/sh
+
+board=$(board_name)
+
+case "$board" in
+skspruce,wia3300-10)
+    # 定义LAN和WAN接口，与DTS中的物理端口顺序(WLLLL)一致
+    ucidef_set_interfaces_lan_wan "lan1 lan2 lan3 lan4" "wan"
+    # 如果需要更复杂的交换机VLAN配置（例如IPTV单线复用），可以在此添加
+    # ucidef_add_switch "switch0" "1" "1"
+    # ucidef_add_switch_vlan "switch0" "1" "1 2 3 4 6t" # LAN VLAN (CPU口标记)
+    # ucidef_add_switch_vlan "switch0" "2" "0 6t"       # WAN VLAN (CPU口标记)
+    ;;
+esac
+
+exit 0

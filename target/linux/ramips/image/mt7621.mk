@@ -2675,6 +2675,17 @@ define Device/telco-electronics_x1
 endef
 TARGET_DEVICES += telco-electronics_x1
 
+define Device/skspruce_wia3300-10
+  $(Device/dsa-migration)
+  IMAGE_SIZE := 32448k
+  DEVICE_VENDOR := Skspruce
+  DEVICE_MODEL := WIA3300-10
+  DEVICE_DTS := mt7621_skspruce_wia3300-10
+  SUPPORTED_DEVICES += wia3300-10
+  DEVICE_PACKAGES := kmod-mt7615-firmware kmod-usb3 kmod-usb-ledtrig-usbport -uboot-envtools
+endef
+TARGET_DEVICES += skspruce_wia3300-10
+
 define Device/tenbay_t-mb5eu-v01
   $(Device/dsa-migration)
   DEVICE_VENDOR := Tenbay

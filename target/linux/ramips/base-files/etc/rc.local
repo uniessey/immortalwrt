@@ -1,0 +1,17 @@
+#!/bin/sh
+# 此脚本在系统启动的最后阶段执行，用于设置最终的LED状态
+
+# 等待系统关键服务（特别是LED和网络子系统）准备就绪
+sleep 5
+
+# ========== 1. 系统状态LED ==========
+# 熄灭红色启动指示灯
+echo "none" > /sys/class/leds/red:boot/trigger 2>/dev/null
+
+# 将绿色电源指示灯设置为“心跳”模式，其闪烁频率随系统负载变化
+echo "heartbeat" > /sys/class/leds/green:power/trigger 2>/dev/null
+# （可选）微调心跳的基准频率，以下为亮50ms，灭950ms的慢速脉搏
+# echo 50 > /sys/class/leds/green:power/delay_on 2>/dev/null
+# echo 950 > /sys/class/leds/green:power/delay_off 2>/dev/null
+
+exit 0
