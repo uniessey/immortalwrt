@@ -71,3 +71,5 @@
 	本适配代码遵循 GPL-2.0-or-later 协议，详见 SPDX 标识。
 
 	如有问题，欢迎提交 Issue 或 Pull Request。
+
+
