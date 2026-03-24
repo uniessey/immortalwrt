@@ -1,93 +1,75 @@
-<img src="https://avatars.githubusercontent.com/u/53193414?s=200&v=4" alt="logo" width="200" height="200" align="right">
+# Skspruce WIA3300-10 适配指南
 
-# Project ImmortalWrt
+本仓库包含了针对 **Skspruce WIA3300-10** 路由器的 ImmortalWrt 24.10 完整适配代码。该设备硬件与斐讯 K2P 高度相似，但闪存容量更大（32MB）、内存更大（256MB）、带 USB 2.0 接口，端口顺序为 **LLLW**（从左至右：LAN1～LAN4、WAN）。
 
-ImmortalWrt is a fork of [OpenWrt](https://openwrt.org), with more packages ported, more devices supported, default optimized profiles and localization modifications for mainland China users.<br/>
-Compared to upstream, we allow to use (non-upstreamable) modifications/hacks to provide better feature/performance/support.
+## 硬件规格
+| 组件        | 型号/规格                     |
+|------------|-----------------------------|
+| CPU        | MediaTek MT7621AT (880MHz)   |
+| 内存        | 256MB DDR3                   |
+| 闪存        | 32MB SPI NOR (Winbond W25Q256) |
+| 无线        | MT7615DN (2.4G/5G 双频单芯片) |
+| 网络接口    | 4x Gigabit LAN, 1x Gigabit WAN (端口顺序 LLLW) |
+| USB        | 1x USB 2.0                   |
+| 复位键      | GPIO 18 (低电平有效)         |
+| LED        | 电源（红/绿）、WAN、2.4G、5G |
 
-Default login address: http://192.168.1.1 or http://immortalwrt.lan, username: __root__, password: _none_.
+## 适配特性
+- **现代 DSA 架构**：采用双 GMAC 设计，GMAC0 负责 LAN 口，GMAC1 负责 WAN 口，实现理论 2Gbps 总带宽。
+- **32MB 闪存分区布局**：完全占满 32MB 空间，Breed 兼容的 `firmware` 分区从 `0x50000` 开始，大小为 `0x1fb0000`。
+- **MAC 地址自动修正**：通过 `/etc/rc.local` 启动脚本从 `factory` 分区读取 LAN MAC（偏移 `0xe000`），并为 2.4G 和 5G 分别生成 `LAN+2` 和 `LAN+3` 的 MAC 地址，解决双频芯片 MAC 自动递增失效的问题。
+- **完整的 LED 配置**：电源灯心跳、WAN 灯网络活动、2.4G/5G 灯无线吞吐量指示。
+- **USB 支持**：已集成 `kmod-usb3` 驱动，支持 USB 存储扩展。
 
-## Download
-Built firmware images are available for many architectures and come with a package selection to be used as WiFi home router. To quickly find a factory image usable to migrate from a vendor stock firmware to ImmortalWrt, try the *Firmware Selector*.
+## 已知问题
+	Breed 对 LED 控制不完美：部分 LED 在启动初期可能状态异常，但系统启动后会由 OpenWrt 正确接管。
 
-- [ImmortalWrt Firmware Selector](https://firmware-selector.immortalwrt.org/)
+	5G MAC 需要脚本修正：因驱动原因，5G 无线默认会继承 2.4G 的 MAC，已通过 rc.local 脚本在启动时修正。
 
-If your device is supported, please follow the **Info** link to see install instructions or consult the support resources listed below.
 
-## Development
-To build your own firmware you need a GNU/Linux, BSD or macOS system (case sensitive filesystem required). Cygwin is unsupported because of the lack of a case sensitive file system.<br/>
+## 编译方法
+1. 克隆本仓库并切换到 `wia3300-10-support` 分支：
+   git clone https://github.com/uniessey/immortalwrt.git -b wia3300-10-support
+   cd immortalwrt
+2. 更新 feeds 并安装所需包：
+	./scripts/feeds update -a
+	./scripts/feeds install -a
+3. 运行配置菜单，选择目标系统：
+	make menuconfig
+	*	Target System: MediaTek Ralink MIPS
 
-  ### Requirements
-  To build with this project, Debian 11 is preferred. And you need use the CPU based on AMD64 architecture, with at least 4GB RAM and 25 GB available disk space. Make sure the __Internet__ is accessible.
+	*	Subtarget: MT7621 based boards
 
-  The following tools are needed to compile ImmortalWrt, the package names vary between distributions.
+	*	Target Profile: Skspruce WIA3300-10
+4. 根据需要添加其他软件包（如 LuCI、USB 支持等），然后编译：
+	首次编译使用：make -j1 V=s
+	如果重新配置后重新编译：make -j$(nproc) V=s
+5. 编译完成后，固件位于 bin/targets/ramips/mt7621/，文件名为 openwrt-ramips-mt7621-skspruce_wia3300-10-sysupgrade.bin。
 
-  - Here is an example for Debian/Ubuntu users:<br/>
-    - Method 1:
-      <details>
-        <summary>Setup dependencies via APT</summary>
+	刷机说明
+	推荐使用 Breed 引导程序（已适配 WIA3300-10 的版本）。
 
-        ```bash
-        sudo apt update -y
-        sudo apt full-upgrade -y
-        sudo apt install -y ack antlr3 asciidoc autoconf automake autopoint binutils bison build-essential \
-          bzip2 ccache clang cmake cpio curl device-tree-compiler ecj fastjar flex gawk gettext gcc-multilib \
-          g++-multilib git gnutls-dev gperf haveged help2man intltool lib32gcc-s1 libc6-dev-i386 libelf-dev \
-          libglib2.0-dev libgmp3-dev libltdl-dev libmpc-dev libmpfr-dev libncurses-dev libpython3-dev \
-          libreadline-dev libssl-dev libtool libyaml-dev libz-dev lld llvm lrzsz mkisofs msmtp nano \
-          ninja-build p7zip p7zip-full patch pkgconf python3 python3-pip python3-ply python3-docutils \
-          python3-pyelftools qemu-utils re2c rsync scons squashfs-tools subversion swig texinfo uglifyjs \
-          upx-ucl unzip vim wget xmlto xxd zlib1g-dev zstd
-        ```
-      </details>
-    - Method 2:
-      ```bash
-      sudo bash -c 'bash <(curl -s https://build-scripts.immortalwrt.org/init_build_environment.sh)'
-      ```
+	刷机前请在 Breed 中正确设置 MAC 地址：
 
-  Note:
-  - Do everything as an unprivileged user, not root, without sudo.
-  - Using CPUs based on other architectures should be fine to compile ImmortalWrt, but more hacks are needed - No warranty at all.
-  - You must __not__ have spaces or non-ascii characters in PATH or in the work folders on the drive.
-  - If you're using Windows Subsystem for Linux (or WSL), removing Windows folders from PATH is required, please see [Build system setup WSL](https://openwrt.org/docs/guide-developer/build-system/wsl) documentation.
-  - Using macOS as the host build OS is __not__ recommended. No warranty at all. You can get tips from [Build system setup macOS](https://openwrt.org/docs/guide-developer/build-system/buildroot.exigence.macosx) documentation.
-  - For more details, please see [Build system setup](https://openwrt.org/docs/guide-developer/build-system/install-buildsystem) documentation.
+	LAN MAC：设备背面标签 MAC（例如 00:00:00:00:00:00）
 
-  ### Quickstart
-  1. Run `git clone -b <branch> --single-branch --filter=blob:none https://github.com/immortalwrt/immortalwrt` to clone the source code.
-  2. Run `cd immortalwrt` to enter source directory.
-  3. Run `./scripts/feeds update -a` to obtain all the latest package definitions defined in feeds.conf / feeds.conf.default
-  4. Run `./scripts/feeds install -a` to install symlinks for all obtained packages into package/feeds/
-  5. Run `make menuconfig` to select your preferred configuration for the toolchain, target system & firmware packages.
-  6. Run `make` to build your firmware. This will download all sources, build the cross-compile toolchain and then cross-compile the GNU/Linux kernel & all chosen applications for your target system.
+	WAN MAC：标签 MAC +1（例如 00:00:00:00:00:01）
 
-  ### Related Repositories
-  The main repository uses multiple sub-repositories to manage packages of different categories. All packages are installed via the OpenWrt package manager called opkg. If you're looking to develop the web interface or port packages to ImmortalWrt, please find the fitting repository below.
-  - [LuCI Web Interface](https://github.com/immortalwrt/luci): Modern and modular interface to control the device via a web browser.
-  - [ImmortalWrt Packages](https://github.com/immortalwrt/packages): Community repository of ported packages.
-  - [OpenWrt Routing](https://github.com/openwrt/routing): Packages specifically focused on (mesh) routing.
-  - [OpenWrt Video](https://github.com/openwrt/video): Packages specifically focused on display servers and clients (Xorg and Wayland).
+	RF1 (2.4G) WLAN MAC：标签 MAC +2（例如 00:00:00:00:00:02）
 
-## Support Information
-For a list of supported devices see the [OpenWrt Hardware Database](https://openwrt.org/supported_devices)
-  ### Documentation
-  - [Quick Start Guide](https://openwrt.org/docs/guide-quick-start/start)
-  - [User Guide](https://openwrt.org/docs/guide-user/start)
-  - [Developer Documentation](https://openwrt.org/docs/guide-developer/start)
-  - [Technical Reference](https://openwrt.org/docs/techref/start)
+	RF2 (5G) WLAN MAC：标签 MAC +3（例如 00:00:00:00:00:03）
 
-  ### Support Community
-  - Support Chat: group [@ctcgfw_openwrt_discuss](https://t.me/ctcgfw_openwrt_discuss) on [Telegram](https://telegram.org/).
-  - Support Chat: group [#immortalwrt](https://matrix.to/#/#immortalwrt:matrix.org) on [Matrix](https://matrix.org/).
+	在 Breed 中选择 闪存布局 → 公版(0x50000)，上传固件刷写。
 
-## License
-ImmortalWrt is licensed under [GPL-2.0-only](https://spdx.org/licenses/GPL-2.0-only.html).
 
-## Acknowledgements
-<table>
-  <tr>
-    <td><a href="https://dlercloud.com/"><img src="https://user-images.githubusercontent.com/22235437/111103249-f9ec6e00-8588-11eb-9bfc-67cc55574555.png" width="183" height="52" border="0" alt="Dler Cloud"></a></td>
-    <td><a href="https://www.jetbrains.com/"><img src="https://resources.jetbrains.com/storage/products/company/brand/logos/jb_square.png" width="120" height="120" border="0" alt="JetBrains Black Box Logo logo"></a></td>
-    <td><a href="https://sourceforge.net/"><img src="https://sourceforge.net/sflogo.php?type=17&group_id=3663829" alt="SourceForge" width=200></a></td>
-  </tr>
-</table>
+	致谢
+	感谢 ImmortalWrt 社区提供的优秀框架。
+
+	感谢论坛开发者提供的 K2P 参考设计及 Breed 支持。
+
+	许可证
+	本适配代码遵循 GPL-2.0-or-later 协议，详见 SPDX 标识。
+
+	如有问题，欢迎提交 Issue 或 Pull Request。
+
+
