@@ -3886,3 +3886,14 @@ define Device/zyxel_wsm20
   KERNEL_INITRAMFS := kernel-bin | lzma | fit lzma $$(KDIR)/image-$$(firstword $$(DEVICE_DTS)).dtb | znet-header V1.00(ABZF.0)C0
 endef
 TARGET_DEVICES += zyxel_wsm20
+
+define Device/skspruce_wia3300-10
+  $(Device/dsa-migration)
+  IMAGE_SIZE := 32448k
+  DEVICE_VENDOR := Skspruce
+  DEVICE_MODEL := WIA3300-10
+  DEVICE_DTS := mt7621_skspruce_wia3300-10
+  SUPPORTED_DEVICES := wia3300-10
+  DEVICE_PACKAGES := kmod-mt7615-firmware kmod-usb3 kmod-leds-gpio kmod-ledtrig-heartbeat default-settings-chn -uboot-envtools 
+endef
+TARGET_DEVICES += skspruce_wia3300-10

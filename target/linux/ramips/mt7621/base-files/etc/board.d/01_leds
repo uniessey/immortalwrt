@@ -211,6 +211,15 @@ oraybox,x3a)
 snr,snr-cpe-me1)
 	ucidef_set_led_usbport "usb" "USB" "green:usb" "usb1-port1" "usb2-port1"
 	;;
+skspruce,wia3300-10)
+    ucidef_set_led_default "power" "POWER" "wia3300-10:green:power" "1"
+    ucidef_set_led_netdev "wan" "WAN" "wia3300-10:green:wan" "wan" "link tx rx"
+    ucidef_set_led_wlan "wlan2g" "2.4GHz" "wia3300-10:green:wlan2g" "phy0tpt"
+    ucidef_set_led_wlan "wlan5g" "5GHz" "wia3300-10:blue:wlan5g" "phy1tpt"
+    # 可选：红灯启动时亮，启动后熄灭（由内核控制，此处设为默认熄灭）
+    ucidef_set_led_default "boot" "BOOT" "wia3300-10:red:power" "0"
+    ;;
+	;;
 tplink,archer-a6-v3|\
 tplink,archer-ax21-v4|\
 tplink,archer-ax23-v1|\
